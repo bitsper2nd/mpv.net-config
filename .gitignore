@@ -2,3 +2,5 @@
 /icc/icc-cache-dir
 /shaders/shader-cache-dir
 /watch_later
+# Settings
+settings.xml
