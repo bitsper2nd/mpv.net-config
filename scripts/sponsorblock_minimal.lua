@@ -78,10 +78,13 @@ function file_loaded()
   local video_referer = string.match(mp.get_property("http-header-fields", ""), "Referer:([^,]+)") or ""
 
   local urls = {
+    "ytdl://youtu%.be/([%w-_]+).*",
+    "ytdl://w?w?w?%.?youtube%.com/v/([%w-_]+).*",
     "https?://youtu%.be/([%w-_]+).*",
     "https?://w?w?w?%.?youtube%.com/v/([%w-_]+).*",
     "/watch.*[?&]v=([%w-_]+).*",
     "/embed/([%w-_]+).*",
+    "^ytdl://([%w-_]+)$",
     "-([%w-_]+)%."
   }
   youtube_id = nil
