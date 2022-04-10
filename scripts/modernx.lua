@@ -534,7 +534,6 @@ local osc_styles = {
     seekbarBg = "{\\blur0\\bord0\\1c&H" .. user_opts.seekbarbg_color .. "&}",
     seekbarFg = "{\\blur1\\bord1\\1c&H" .. user_opts.seekbarfg_color .. "&}",
 
-    elementDown = "{\\1c&H999999&}",
     bigButtons = "{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs28\\fnmodernx-osc-icon}",
     mediumButtons = "{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fnmodernx-osc-icon}",
     smallButtons = "{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fnmodernx-osc-icon}",
@@ -543,9 +542,12 @@ local osc_styles = {
     tooltip = "{\\blur1\\bord" .. user_opts.tooltipborder .. "\\1c&HFFFFFF&\\3c&H000000&\\fs20}",
     vidTitle = "{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs32\\q2\\fn" .. user_opts.titlefont .. "}",
 
-    wcButtons = "{\\1c&HFFFFFF\\fs20\\fnmodernx-osc-icon}",
-    wcTitle = "{\\1c&HFFFFFF\\fs24\\q2\\fn" .. user_opts.titlefont .. "}",
+    wcButtons = "{\\1c&HFFFFFF&\\fs20\\fnmodernx-osc-icon}",
+    wcTitle = "{\\1c&HFFFFFF&\\fs24\\q2\\fn" .. user_opts.titlefont .. "}",
     wcBar = "{\\1c&H" .. user_opts.osc_color .. "}",
+
+    elementDown = "{\\1c&H999999&}",
+    elementHover = "{\\blur5\\1c&HFFFFFF&}"
 }
 
 -- internal states, do not touch
@@ -1236,6 +1238,16 @@ function render_elements(master_ass)
                     elem_ass:append(tooltiplabel)
                 end
             end
+
+            -- add hover effect
+            -- source: https://github.com/Zren/mpvz/issues/13
+            local button_lo = element.layout.button
+            if mouse_hit(element) and element.hoverable and element.enabled then
+                local shadow_ass = assdraw.ass_new()
+                shadow_ass:merge(style_ass)
+                shadow_ass:append(button_lo.hoverstyle .. buttontext)
+                elem_ass:merge(shadow_ass)
+            end
         end
 
         master_ass:merge(elem_ass)
@@ -1377,12 +1389,12 @@ function new_element(name, type)
     elements[name].enabled = true
     elements[name].softrepeat = false
     elements[name].styledown = (type == "button")
+    elements[name].hoverable = (type == "button")
     elements[name].state = {}
 
     if (type == "slider") then
         elements[name].slider = {min = {value = 0}, max = {value = 100}}
     end
-
 
     return elements[name]
 end
@@ -1399,6 +1411,7 @@ function add_layout(name)
         if (elements[name].type == "button") then
             elements[name].layout.button = {
                 maxchars = nil,
+                hoverstyle = osc_styles.elementHover,
             }
         elseif (elements[name].type == "slider") then
             -- slider defaults
@@ -1483,6 +1496,7 @@ function window_controls()
     lo = add_layout("close")
     lo.geometry = alignment == "left" and first_geo or third_geo
     lo.style = osc_styles.wcButtons
+    lo.button.hoverstyle = "{\\c&H2311E8&}"
 
     -- Minimize: 🗕
     ne = new_element("minimize", "button")
@@ -1528,6 +1542,7 @@ function window_controls()
         title = title:gsub("\\n", " "):gsub("\\$", ""):gsub("{","\\{")
         return not (title == "") and title or "mpv"
     end
+    ne.hoverable = false
     local left_pad = 5
     local right_pad = 10
     lo = add_layout("wctitle")
@@ -1760,6 +1775,7 @@ function osc_init()
     ne = new_element("title", "button")
 
     ne.visible = user_opts.showtitle
+    ne.hoverable = false
     ne.content = function ()
         local title = state.forced_title or
                       mp.command_native({"expand-text", user_opts.title})
@@ -2088,6 +2104,7 @@ function osc_init()
     ne = new_element("cache", "button")
 
     ne.visible = (osc_param.playresx >= 480)
+    ne.hoverable = false
     ne.content = function ()
         local cache_state = state.cache_state
         if not (cache_state and cache_state["seekable-ranges"] and
