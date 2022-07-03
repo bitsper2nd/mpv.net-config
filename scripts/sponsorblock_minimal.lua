@@ -3,12 +3,16 @@
 -- This script skips sponsored segments of YouTube videos
 -- using data from https://github.com/ajayyy/SponsorBlock
 
+local opt = require 'mp.options'
+
 local options = {
   server = "https://sponsor.ajay.app/api/skipSegments",
 
   -- Categories to fetch and skip
-  categories = '"sponsor","intro","outro","interaction","selfpromo"'
+  categories = '"sponsor"'
 }
+
+opt.read_options(options)
 
 function getranges()
   local luacurl_available, cURL = pcall(require,'cURL')
